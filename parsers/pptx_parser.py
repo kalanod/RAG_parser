@@ -15,7 +15,18 @@ class PPTXParser(DocumentParser):
     supported_extensions = (".pptx",)
 
     def parse(self, path: Path, **kwargs: object) -> List[Segment]:
-        text = self._extract_with_python_pptx(path)
+        try:
+            text = self._extract_with_python_pptx(path)
+        except Exception as exc:  # pragma: no cover - defensive fallback
+            LOGGER.exception("Failed to parse PPTX %s: %s", path, exc)
+            return [
+                Segment.from_text(
+                    text="",
+                    source=str(path),
+                    metadata={"error": str(exc)},
+                )
+            ]
+
         if not text:
             LOGGER.warning(
                 "No PPTX extraction backend available for %s. Returning empty result.",
