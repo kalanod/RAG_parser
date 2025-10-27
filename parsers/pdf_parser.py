@@ -288,6 +288,7 @@ class PDFParser(SimpleParser):
 
         return final_blocks
 
+
     def _split_block(self, block: _Block, max_block_chars: int) -> List[_Block]:
         if len(block.text) <= max_block_chars:
             return [block]
