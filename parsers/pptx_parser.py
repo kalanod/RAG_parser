@@ -30,7 +30,11 @@ class PPTXParser(DocumentParser):
         except Exception:
             return ""
 
-        presentation = Presentation(path)  # pragma: no cover
+        try:
+            presentation = Presentation(path)  # pragma: no cover
+        except Exception:  # pragma: no cover - defensive fallback
+            LOGGER.exception("Failed to open PPTX file: %s", path)
+            return ""
         lines = []
         for index, slide in enumerate(presentation.slides, start=1):
             lines.append(f"# Slide {index}")
