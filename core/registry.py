@@ -8,7 +8,7 @@ from typing import Dict, Iterable, Type
 from parsers.base_parser import DocumentParser
 
 _REGISTRY: Dict[str, str] = {
-    ".pdf": "parsers.pdf_parser.PDFParser",
+    ".pdf": "parsers.pdf_parser.HybridPDFParser",
     ".docx": "parsers.docx_parser.DOCXParser",
     ".pptx": "parsers.pptx_parser.PPTXParser",
     ".xlsx": "parsers.xlsx_parser.XLSXParser",

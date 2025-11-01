@@ -5,10 +5,12 @@ from collections import Counter
 from dataclasses import dataclass
 import re
 from pathlib import Path
-from typing import Iterable, Iterator, List
+from tempfile import TemporaryDirectory
+from typing import Callable, Dict, Iterable, Iterator, List, Tuple
 
 from core.segment import Segment
 from parsers.base_parser import SimpleParser
+from parsers.ocr_parser import ImageOCRParser
 from utils.logger import get_logger
 
 LOGGER = get_logger(__name__)
@@ -51,6 +53,16 @@ class PDFParser(SimpleParser):
         """Convert raw text into cleaned, structured :class:`Segment` objects."""
 
         source = str(kwargs.get("path", ""))
+        yield from self._build_segments(text, source=source)
+
+    def _build_segments(
+        self,
+        text: str,
+        *,
+        source: str,
+        metadata_factory: Callable[["_Block"], Dict[str, object]] | None = None,
+        page_factory: Callable[["_Block"], int | None] | None = None,
+    ) -> Iterable[Segment]:
         cleaned = self._clean_text(text)
         if not cleaned:
             return
@@ -62,10 +74,17 @@ class PDFParser(SimpleParser):
         for block in blocks:
             if not block.text:
                 continue
+            metadata: Dict[str, object] = {"type": block.type}
+            if metadata_factory is not None:
+                extra = metadata_factory(block)
+                if extra:
+                    metadata.update(extra)
+            page = page_factory(block) if page_factory is not None else None
             yield Segment.from_text(
                 text=block.text,
                 source=source,
-                metadata={"type": block.type},
+                metadata=metadata,
+                page=page,
             )
 
     def extract_text(self, path: Path, **kwargs: object) -> str:
@@ -285,3 +304,166 @@ class PDFParser(SimpleParser):
 
         return limited
 
+
+class HybridPDFParser(PDFParser):
+    """PDF parser that falls back to OCR when no text layer is detected."""
+
+    #: Minimal amount of non-whitespace characters per document to consider it text-based
+    _min_document_chars = 300
+    #: Minimal amount of non-whitespace characters per page to consider it text-based
+    _min_page_chars = 80
+
+    def parse(self, path: Path, **kwargs: object) -> List[Segment]:
+        text_pages, backend = self._extract_text_pages(path)
+        if text_pages and self._looks_like_text_document(text_pages):
+            LOGGER.debug(
+                "Using text extraction backend '%s' for %s", backend or "unknown", path
+            )
+            text = "\n".join(page for page in text_pages if page)
+            return list(self._build_segments(text, source=str(path)))
+
+        LOGGER.info("Falling back to OCR for %s", path)
+        ocr_segments = self._parse_with_ocr(path)
+        if ocr_segments:
+            return ocr_segments
+
+        LOGGER.warning("OCR fallback failed for %s. Returning empty result.", path)
+        return [
+            Segment.from_text(
+                text="",
+                source=str(path),
+                metadata={"error": "ocr_unavailable"},
+            )
+        ]
+
+    # -- Text extraction helpers -------------------------------------------------
+
+    def _extract_text_pages(self, path: Path) -> Tuple[List[str], str | None]:
+        pages = self._extract_with_pymupdf_pages(path)
+        if any(page.strip() for page in pages):
+            return pages, "pymupdf"
+
+        pages = self._extract_with_pdfplumber_pages(path)
+        if any(page.strip() for page in pages):
+            return pages, "pdfplumber"
+
+        return [], None
+
+    def _extract_with_pymupdf_pages(self, path: Path) -> List[str]:
+        try:
+            import fitz  # type: ignore
+        except Exception:
+            return []
+
+        text_pages: List[str] = []
+        try:
+            with fitz.open(path) as doc:  # pragma: no cover - requires dependency
+                for page in doc:
+                    text_pages.append(page.get_text())
+        except Exception as exc:  # pragma: no cover - requires dependency
+            LOGGER.debug("PyMuPDF failed to extract %s: %s", path, exc)
+        return text_pages
+
+    def _extract_with_pdfplumber_pages(self, path: Path) -> List[str]:
+        try:
+            import pdfplumber  # type: ignore
+        except Exception:
+            return []
+
+        text_pages: List[str] = []
+        try:
+            with pdfplumber.open(path) as pdf:  # pragma: no cover - requires dependency
+                for page in pdf.pages:
+                    text_pages.append(page.extract_text() or "")
+        except Exception as exc:  # pragma: no cover - requires dependency
+            LOGGER.debug("pdfplumber failed to extract %s: %s", path, exc)
+        return text_pages
+
+    def _looks_like_text_document(self, pages: List[str]) -> bool:
+        if not pages:
+            return False
+
+        non_whitespace_total = sum(
+            1 for page in pages for ch in page if not ch.isspace()
+        )
+        if non_whitespace_total >= self._min_document_chars:
+            return True
+
+        for page in pages:
+            non_whitespace_page = sum(1 for ch in page if not ch.isspace())
+            if non_whitespace_page >= self._min_page_chars:
+                return True
+
+        return False
+
+    # -- OCR helpers -------------------------------------------------------------
+
+    def _parse_with_ocr(self, path: Path) -> List[Segment]:
+        source = str(path)
+        with TemporaryDirectory() as tmpdir:
+            page_images = list(self._export_pages_to_images(path, Path(tmpdir)))
+
+            if not page_images:
+                LOGGER.warning("Unable to render PDF %s for OCR", path)
+                return []
+
+            ocr_parser = ImageOCRParser()
+            segments: List[Segment] = []
+            for page_number, image_path in page_images:
+                text = self._run_ocr(ocr_parser, image_path)
+                if not text.strip():
+                    continue
+
+                segments.extend(
+                    self._build_segments(
+                        text,
+                        source=source,
+                        metadata_factory=lambda block, page=page_number: {
+                            "source_type": "ocr",
+                            "page": page,
+                        },
+                        page_factory=lambda block, page=page_number: page,
+                    )
+                )
+
+        return segments
+
+    def _export_pages_to_images(
+        self, path: Path, tmpdir: Path
+    ) -> Iterator[Tuple[int, Path]]:  # pragma: no cover - requires dependencies
+        try:
+            import fitz  # type: ignore
+        except Exception:
+            fitz = None
+
+        if fitz is not None:
+            try:
+                with fitz.open(path) as doc:
+                    for index, page in enumerate(doc, start=1):
+                        pix = page.get_pixmap()
+                        image_path = tmpdir / f"page_{index:04d}.png"
+                        pix.save(str(image_path))
+                        yield index, image_path
+            except Exception as exc:
+                LOGGER.debug("PyMuPDF failed to render %s: %s", path, exc)
+            return
+
+        try:
+            from pdf2image import convert_from_path  # type: ignore
+        except Exception:
+            return
+
+        try:
+            images = convert_from_path(path)
+        except Exception as exc:
+            LOGGER.debug("pdf2image failed to render %s: %s", path, exc)
+            return
+
+        for index, image in enumerate(images, start=1):
+            image_path = tmpdir / f"page_{index:04d}.png"
+            image.save(image_path, format="PNG")
+            yield index, image_path
+
+    def _run_ocr(self, parser: ImageOCRParser, image_path: Path) -> str:
+        segments = parser.parse(image_path)
+        return "\n".join(segment.text for segment in segments if segment.text)
