@@ -5,7 +5,7 @@ from importlib import import_module
 from pathlib import Path
 from typing import Dict, Iterable, Type
 
-from parsers.base_parser import DocumentParser
+from parsers.abstract_document_parser import AbstractDocumentParser
 
 _REGISTRY: Dict[str, str] = {
     ".pdf": "parsers.pdf_parser.PDFParser",
@@ -20,7 +20,7 @@ _REGISTRY: Dict[str, str] = {
 }
 
 
-def get_parser_class(extension: str) -> Type[DocumentParser]:
+def get_parser_class(extension: str) -> Type[AbstractDocumentParser]:
     """Return the parser class registered for *extension*.
 
     Raises ``KeyError`` if the extension is unknown.
@@ -34,12 +34,12 @@ def get_parser_class(extension: str) -> Type[DocumentParser]:
     module_name, class_name = dotted_path.rsplit(".", 1)
     module = import_module(module_name)
     parser_class = getattr(module, class_name)
-    if not issubclass(parser_class, DocumentParser):
-        raise TypeError(f"{parser_class!r} is not a DocumentParser subclass.")
+    if not issubclass(parser_class, AbstractDocumentParser):
+        raise TypeError(f"{parser_class!r} is not a AbstractDocumentParser subclass.")
     return parser_class
 
 
-def resolve_parser(path: Path) -> DocumentParser:
+def resolve_parser(path: Path) -> AbstractDocumentParser:
     """Instantiate the parser for the file located at *path*."""
 
     extension = path.suffix.lower()

@@ -5,13 +5,13 @@ from pathlib import Path
 from typing import List
 
 from core.segment import Segment
-from parsers.base_parser import DocumentParser
+from parsers.abstract_document_parser import AbstractDocumentParser
 from utils.logger import get_logger
 
 LOGGER = get_logger(__name__)
 
 
-class ImageOCRParser(DocumentParser):
+class ImageOCRParser(AbstractDocumentParser):
     supported_extensions = (".png", ".jpg", ".jpeg")
 
     def parse(self, path: Path, **kwargs: object) -> List[Segment]:

@@ -7,17 +7,49 @@ name = "rag-parser"
 version = "0.1.0"
 description = "Modular document parsing toolkit for Retrieval-Augmented Generation"
 readme = "README.md"
-authors = [{name = "RAG Parser Team"}]
+authors = [{ name = "RAG Parser Team" }]
 requires-python = ">=3.9"
 dependencies = ["pytest>=7.0"]
 
 [project.optional-dependencies]
-pdf = ["PyMuPDF>=1.22.0", "pdfplumber>=0.10.0"]
-docs = ["python-docx>=0.8.11", "docx2python>=2.5.0"]
-spreadsheets = ["pandas>=1.5.0", "openpyxl>=3.1.0"]
-pptx = ["python-pptx>=0.6.21"]
-ocr = ["paddleocr>=2.6.1.3", "pytesseract>=0.3.10", "Pillow>=9.0.0"]
+pdf = [
+    "PyMuPDF>=1.22.0",
+    "pdfplumber>=0.10.0",
+]
+docs = [
+    "python-docx>=0.8.11",
+    "docx2python>=2.5.0",
+]
+spreadsheets = [
+    "pandas>=1.5.0",
+    "openpyxl>=3.1.0",
+]
+pptx = [
+    "python-pptx>=0.6.21",
+]
+ocr = [
+    # OCR dependencies require external binaries:
+    # 1. Tesseract OCR must be installed on the system and available in PATH.
+    #    Windows users can download from: https://github.com/UB-Mannheim/tesseract/wiki
+    # 2. Optionally set path manually in code:
+    #    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    "paddleocr>=2.6.1.3",
+    "pytesseract>=0.3.10",
+    "Pillow>=9.0.0",
+]
 
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]
 addopts = "-ra"
+
+[tool.rag_parser.notes]
+tesseract_installation = """
+Tesseract OCR is required for the 'ocr' extra.
+On Windows:
+  1. Download and install from: https://github.com/UB-Mannheim/tesseract/wiki
+  2. Add installation path to the PATH environment variable:
+       C:\\Program Files\\Tesseract-OCR\\
+  3. Verify installation by running 'tesseract --version' in the terminal.
+  4. Alternatively, specify the full path in code using:
+       pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+"""

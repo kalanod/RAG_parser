@@ -5,13 +5,12 @@ from pathlib import Path
 from typing import List
 
 from core.segment import Segment
-from parsers.base_parser import SimpleParser
 from utils.logger import get_logger
 
 LOGGER = get_logger(__name__)
 
 
-class DOCXParser(SimpleParser):
+class DOCXParser():
     supported_extensions = (".docx",)
 
     def parse(self, path: Path, **kwargs: object) -> List[Segment]:
