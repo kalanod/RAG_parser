@@ -23,9 +23,9 @@ LOGGER = logging.getLogger(__name__)
 # ------------------------ CONFIG ------------------------
 @dataclass
 class DocxParserConfig:
-    chunk_size: int = 1200
+    chunk_size: int = 700
     chunk_overlap: int = 150
-    overlap_chars: int = 300  # перекрытие между соседними параграфами
+    overlap_chars: int = 300
     ocr_lang: str = "rus+eng"
     min_ocr_w: int = 100
     min_ocr_h: int = 50
