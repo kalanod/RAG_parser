@@ -1,4 +1,3 @@
-"""Logging configuration shared across the project."""
 from __future__ import annotations
 
 import logging
@@ -8,8 +7,6 @@ _DEFAULT_LEVEL = logging.INFO
 
 
 def configure(level: int = _DEFAULT_LEVEL) -> None:
-    """Configure the root logger."""
-
     if logging.getLogger().handlers:
         return
 
@@ -20,8 +17,6 @@ def configure(level: int = _DEFAULT_LEVEL) -> None:
 
 
 def get_logger(name: Optional[str] = None) -> logging.Logger:
-    """Return a module-level logger, configuring logging if required."""
-
     configure()
     return logging.getLogger(name)
 

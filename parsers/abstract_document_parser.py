@@ -6,9 +6,6 @@ from typing import Iterable, List
 
 from langchain_core.documents import Document
 
-from core.segment import Segment
-
-
 class AbstractDocumentParser(ABC):
     supported_extensions: Iterable[str] = ()
 

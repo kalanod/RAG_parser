@@ -1,29 +1,20 @@
-"""High-level document parsing orchestration."""
 from __future__ import annotations
-
-import sys
 from pathlib import Path
-from typing import Iterable, List
-
-from langchain_community.vectorstores import Chroma
-from langchain_core.documents import Document
+from typing import Iterable
 from langchain_core.embeddings import Embeddings
 from openai import OpenAI
 from tqdm import tqdm
-
 from core.registry import resolve_parser
-from core.segment import Segment
-from utils.chunking import chunk_segments
-from utils.cleaning import clean_segment
 from utils.logger import get_logger
-
+from langchain_community.vectorstores import Chroma
+from langchain.schema import Document
+import numpy as np
+from typing import List, Tuple
 
 LOGGER = get_logger(__name__)
 
 
-def parse_document(path: Path,) -> List[Document]:
-    """Parse *path* into :class:`Segment` objects."""
-
+def parse_document(path: Path) -> List[Document]:
     path = Path(path)
     if not path.exists():
         raise FileNotFoundError(path)
@@ -34,69 +25,56 @@ def parse_document(path: Path,) -> List[Document]:
     return segments
 
 
-def parse_many(paths: Iterable[Path], *, chunk: bool = True) -> List[Segment]:
-    """Parse multiple *paths* and return a combined list of segments."""
-
-    result: List[Segment] = []
+def parse_many(paths: Iterable[Path]):
+    result = []
     for path in paths:
-        result.extend(parse_document(Path(path), chunk=chunk))
+        result.extend(parse_document(Path(path)))
     return result
 
-def create_embeddings(data, model: str = "text-embedding-3-small"):
+
+def create_embeddings(data, base_url, model, api_key):
     client = OpenAI(
-        base_url="https://ai-for-finance-hack.up.railway.app",
-        api_key="sk-fadOQ_Pb4hU8f73BQzeTwQ"
+        base_url=base_url,
+        api_key=api_key
     )
     res = []
     for i in tqdm(range(len(data)), desc="Эмбединги",
-            ncols=80):
+                  ncols=80):
         response = client.embeddings.create(
             input=data[i].page_content,
             model=model
         )
         res.append(response.data[0].embedding)
     return res
+
+
 def save_to_chroma(
-    documents: List[Document],
-    embeddings: Embeddings,
-    persist_directory: str = "./chroma_db",
-    collection_name: str = "pdf_collection"
+        documents: List[Document],
+        embeddings: Embeddings,
+        persist_directory: str = "./chroma_db",
+        collection_name: str = "pdf_collection"
 ):
-    # Инициализация или создание коллекции
     vectorstore = Chroma.from_documents(
         documents=documents,
         embedding=embeddings,
         persist_directory=persist_directory,
         collection_name=collection_name
     )
-
-    # Сохраняем на диск
     vectorstore.persist()
     print(f"✅ Chroma база успешно сохранена в '{persist_directory}' (коллекция: {collection_name})")
-
     return vectorstore
 
 
 def load_from_chroma(
-    embeddings: Embeddings,
-    persist_directory: str = "./chroma_db",
-    collection_name: str = "pdf_collection"
+        persist_directory: str = "./db",
+        collection_name: str = "pdf_collection"
 ):
-    """
-    Загружает ранее сохранённую Chroma-базу для последующего поиска.
-    """
     vectorstore = Chroma(
-        embedding_function=embeddings,
         persist_directory=persist_directory,
         collection_name=collection_name
     )
-    print(f"📂 Chroma база загружена из '{persist_directory}' (коллекция: {collection_name})")
+    print(f"Chroma база загружена из '{persist_directory}' (коллекция: {collection_name})")
     return vectorstore
-
-from langchain.vectorstores import Chroma
-from langchain.schema import Document
-import numpy as np
-from typing import List, Tuple
 
 
 def _sanitize_metadata(metadata: dict) -> dict:
@@ -110,10 +88,10 @@ def _sanitize_metadata(metadata: dict) -> dict:
 
 
 def init_chroma_with_embeddings(
-    persist_directory: str,
-    documents: List[Document],
-    embeddings: List[List[float]],
-    collection_name: str = "rag_store"
+        persist_directory: str,
+        documents: List[Document],
+        embeddings: List[List[float]],
+        collection_name: str = "rag_store"
 ) -> Chroma:
     vectors = np.array(embeddings, dtype=np.float32)
     if len(vectors) != len(documents):
@@ -138,11 +116,10 @@ def init_chroma_with_embeddings(
 
 
 def search_in_chroma(
-    db: Chroma,
-    query_vector: List[float],
-    top_k: int = 5
+        db: Chroma,
+        query_vector: List[float],
+        top_k: int = 5
 ) -> List[Tuple[Document, float]]:
-
     results = db._collection.query(
         query_embeddings=query_vector,
         n_results=top_k,

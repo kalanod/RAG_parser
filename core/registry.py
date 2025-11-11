@@ -1,4 +1,3 @@
-"""Parser registry that maps file extensions to parser classes."""
 from __future__ import annotations
 
 from importlib import import_module
@@ -21,11 +20,6 @@ _REGISTRY: Dict[str, str] = {
 
 
 def get_parser_class(extension: str) -> Type[AbstractDocumentParser]:
-    """Return the parser class registered for *extension*.
-
-    Raises ``KeyError`` if the extension is unknown.
-    """
-
     try:
         dotted_path = _REGISTRY[extension.lower()]
     except KeyError as exc:
@@ -40,15 +34,11 @@ def get_parser_class(extension: str) -> Type[AbstractDocumentParser]:
 
 
 def resolve_parser(path: Path) -> AbstractDocumentParser:
-    """Instantiate the parser for the file located at *path*."""
-
     extension = path.suffix.lower()
     parser_cls = get_parser_class(extension)
     return parser_cls()
 
 
 def available_extensions() -> Iterable[str]:
-    """Yield the extensions currently registered."""
-
     return tuple(sorted(_REGISTRY))
 
