@@ -7,7 +7,7 @@ from core.RagContext import RagContext
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 MAIN_EMBEDDER = HuggingFaceEmbeddings(
     model_name='ai-sage/Giga-Embeddings-instruct',
-    model_kwargs={'device': 'cuda', "trust_remote_code": True},
+    model_kwargs={'device': 'cpu', "trust_remote_code": True},
     encode_kwargs={'normalize_embeddings': True},
 )
 
