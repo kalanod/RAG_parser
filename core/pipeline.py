@@ -3,7 +3,7 @@ from pathlib import Path
 from core.registry import resolve_parser
 from utils.logger import get_logger
 from langchain_community.vectorstores import Chroma
-from langchain.schema import Document
+from langchain_core.documents import Document
 from typing import List
 
 LOGGER = get_logger(__name__)

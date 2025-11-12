@@ -3,7 +3,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-from langchain.schema import Document
+from langchain_core.documents import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from docx import Document as DocxDocument
