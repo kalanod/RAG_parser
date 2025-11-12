@@ -12,5 +12,5 @@ MAIN_EMBEDDER = HuggingFaceEmbeddings(
 
 if __name__ == '__main__':
     context = RagContext("main", MAIN_EMBEDDER)
-    context.add_file(Path("./res/1.pdf"))
+    context.add_file(Path("./res/1.xlsx"))
     context.new_question("сколько будут платить?")
