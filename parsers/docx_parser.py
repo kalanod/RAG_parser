@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
-from typing import List, Optional, Iterable, Tuple
+from typing import List, Optional, Tuple
 
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter

@@ -5,13 +5,11 @@
 ## Установка
 
 ```bash
-pip install -e .
+pip install -r requirements.txt
 ```
-Создайте и заполните .env как .env_template
+установите tesseracts
 ## Использование
-
 Пример использования в main.py
-
 ##
 
 

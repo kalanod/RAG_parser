@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 from pathlib import Path
 from langchain_core.embeddings import Embeddings
@@ -7,8 +5,7 @@ from core.registry import resolve_parser
 from utils.logger import get_logger
 from langchain_community.vectorstores import Chroma
 from langchain.schema import Document
-import numpy as np
-from typing import List, Tuple
+from typing import List
 
 LOGGER = get_logger(__name__)
 

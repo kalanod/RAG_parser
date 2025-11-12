@@ -1,7 +1,5 @@
-import os
 from pathlib import Path
 import pytesseract
-from dotenv import load_dotenv
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
 from core.RagContext import RagContext
@@ -15,5 +13,5 @@ MAIN_EMBEDDER = HuggingFaceEmbeddings(
 
 if __name__ == '__main__':
     context = RagContext("main", MAIN_EMBEDDER)
-    context.add_file(Path("./res/diapi.pdf"))
+    context.add_file(Path("./res/1.pdf"))
     context.new_question("сколько будут платить?")
