@@ -12,7 +12,7 @@ class RagContext:
     db = None
     db_dir = None
 
-    def __init__(self, name, embedder, db_dir="../db"):
+    def __init__(self, name, embedder, db_dir="./db"):
         self.name = name
         self.files = []
         self.db_dir = db_dir
