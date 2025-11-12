@@ -33,24 +33,12 @@ def load_from_chroma(
 
 
 def save_to_chroma(
-        documents: List[Document],
-        embeddings: List[List[float]],
+        documents: list[Document],
+        embeddings: list[list[float]],
         persist_directory: str = "../db",
         collection_name: str = "base"
 ) -> Chroma:
-    os.makedirs(persist_directory, exist_ok=True)
-
-    texts = [doc.page_content for doc in documents]
-    metadatas = [doc.metadata for doc in documents]
-
-    vectorstore = Chroma(
-        collection_name=collection_name,
-        persist_directory=persist_directory
-    )
-    vectorstore._collection.add(
-        embeddings=embeddings,
-        documents=texts,
-        metadatas=metadatas
-    )
-    vectorstore.persist()
-    return vectorstore
+    db = Chroma(collection_name=collection_name, persist_directory=persist_directory)
+    db.add_documents(documents=documents, embeddings=embeddings)
+    db.persist()
+    return db
