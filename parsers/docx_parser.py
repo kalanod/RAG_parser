@@ -20,7 +20,6 @@ from parsers.abstract_document_parser import AbstractDocumentParser
 LOGGER = logging.getLogger(__name__)
 
 
-# ------------------------ CONFIG ------------------------
 @dataclass
 class DocxParserConfig:
     chunk_size: int = 700
@@ -31,7 +30,6 @@ class DocxParserConfig:
     min_ocr_h: int = 50
 
 
-# ------------------------ PARSER ------------------------
 class DOCXParser(AbstractDocumentParser):
     supported_extensions = (".docx",)
     config = DocxParserConfig()
@@ -56,7 +54,6 @@ class DOCXParser(AbstractDocumentParser):
                 )
             ]
 
-    # ------------------------ SPLIT ------------------------
     def split_to_docs(self, documents: List[Document]) -> List[Document]:
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=self.config.chunk_size,
@@ -80,7 +77,6 @@ class DOCXParser(AbstractDocumentParser):
                 )
         return split_docs
 
-    # ------------------------ TEXT ------------------------
     def _extract_text_blocks(self, path: Path) -> List[Document]:
         d: _DocxDocumentType = DocxDocument(str(path))
         paragraphs: List[Paragraph] = [p for p in d.paragraphs if p.text and p.text.strip()]
@@ -115,7 +111,6 @@ class DOCXParser(AbstractDocumentParser):
 
         return docs
 
-    # ------------------------ TABLES ------------------------
     def _extract_table_blocks(self, path: Path) -> List[Document]:
         docs: List[Document] = []
         d: _DocxDocumentType = DocxDocument(str(path))
@@ -149,7 +144,6 @@ class DOCXParser(AbstractDocumentParser):
 
         return docs
 
-    # ------------------------ OCR IMAGES (optional) ------------------------
     def _extract_ocr_blocks(self, path: Path) -> List[Document]:
         docs: List[Document] = []
         d: _DocxDocumentType = DocxDocument(str(path))
