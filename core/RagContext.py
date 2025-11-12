@@ -19,31 +19,25 @@ class RagContext:
         self.embedder = embedder
 
     def add_file(self, path: Path):
-        file = self.embedd_file(path)
-        self.files.append(file)
-        self.save_to_db()
+        documents = parse_document(path)
+        embeddings = self.embedd_file(documents)
+        self.save_to_db(documents, embeddings)
 
     def edit_name(self, new_name: str):
         self.name = new_name
 
-    def embedd_files(self):
-        for i, file in enumerate(self.files):
-            if file[1] is None:
-                self.files[i] = self.embedd_file(file[0])
-
-    def embedd_file(self, path):
-        documents = parse_document(path)
+    def embedd_file(self, documents):
         embeddings = self.embedder.embed_documents([i.page_content for i in documents])
-        return [path, documents, embeddings]
+        return embeddings
 
     def embedd_query(self, query):
         return self.embedder.embed_query(query)
 
-    def save_to_db(self):
+    def save_to_db(self, documents, embeddings):
         save_to_chroma(
             persist_directory=self.db_dir,
-            documents=[doc[1] for doc in self.files],
-            embeddings=[doc[2] for doc in self.files],
+            documents=documents,
+            embeddings=embeddings,
             collection_name=self.name,
         )
 

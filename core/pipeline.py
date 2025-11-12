@@ -47,7 +47,6 @@ def save_to_chroma(
             embedding_function=embeddings
         )
         vectorstore.add_documents(documents)
-
     except Exception as e:
         vectorstore = Chroma.from_documents(
             documents=documents,
