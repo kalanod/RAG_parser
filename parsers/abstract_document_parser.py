@@ -10,7 +10,7 @@ class AbstractDocumentParser(ABC):
     supported_extensions: Iterable[str] = ()
 
     @abstractmethod
-    def parse(self, path: Path, **kwargs: object) -> List[Document]:
+    def parse(self, path: Path) -> List[Document]:
         raise NotImplementedError
 
     @abstractmethod

@@ -34,7 +34,7 @@ class DOCXParser(AbstractDocumentParser):
     supported_extensions = (".docx",)
     config = DocxParserConfig()
 
-    def parse(self, path: Path, **kwargs: object) -> List[Document]:
+    def parse(self, path: Path) -> List[Document]:
         try:
             documents: List[Document] = []
             documents.extend(self._extract_text_blocks(path))

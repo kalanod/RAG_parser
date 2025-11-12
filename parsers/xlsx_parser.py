@@ -6,19 +6,24 @@ from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import logging
 
+from parsers.abstract_document_parser import AbstractDocumentParser
+
 LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
 class XLSXParserConfig:
-    chunk_size: int = 1500   # по токенам, не символам
+    chunk_size: int = 1500  # по токенам, не символам
     chunk_overlap: int = 200
     min_nonempty_cells: int = 2
 
 
-class XLSXParser:
+class XLSXParser(AbstractDocumentParser):
     supported_extensions = (".xlsx", ".xls")
     config = XLSXParserConfig()
+
+    def split_to_docs(self, documents):
+        raise NotImplementedError
 
     def parse(self, path: Path) -> List[Document]:
         try:
