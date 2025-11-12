@@ -36,7 +36,7 @@ class RagContext:
         return [path, documents, embeddings]
 
     def embedd_query(self, query):
-        return self.embedder.execute_query(query)
+        return self.embedder.embed_query(query)
 
     def save_to_db(self):
         save_to_chroma(
