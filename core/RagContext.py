@@ -33,11 +33,10 @@ class RagContext:
         return embeddings
 
     def embedd_query(self, query):
-        return self.embedder.embed_query(query)
+        return self.embedder.embed_documents([query])[0]
 
     def save_to_db(self, documents, embeddings):
         self.db.add_documents(documents=documents, embeddings=embeddings)
-        self.db.persist()
 
     def get_db(self):
         if self.db is None:
