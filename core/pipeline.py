@@ -34,25 +34,23 @@ def load_from_chroma(
 
 def save_to_chroma(
         documents: List[Document],
-        embeddings,
-        persist_directory: str = "./chroma_db",
-        collection_name: str = "pdf_collection"
+        embeddings: List[List[float]],
+        persist_directory: str = "../db",
+        collection_name: str = "base"
 ) -> Chroma:
     os.makedirs(persist_directory, exist_ok=True)
 
-    try:
-        vectorstore = Chroma(
-            collection_name=collection_name,
-            persist_directory=persist_directory,
-            embedding_function=embeddings
-        )
-        vectorstore.add_documents(documents)
-    except Exception as e:
-        vectorstore = Chroma.from_documents(
-            documents=documents,
-            embedding=embeddings,
-            persist_directory=persist_directory,
-            collection_name=collection_name
-        )
+    texts = [doc.page_content for doc in documents]
+    metadatas = [doc.metadata for doc in documents]
+
+    vectorstore = Chroma(
+        collection_name=collection_name,
+        persist_directory=persist_directory
+    )
+    vectorstore._collection.add(
+        embeddings=embeddings,
+        documents=texts,
+        metadatas=metadatas
+    )
     vectorstore.persist()
     return vectorstore
