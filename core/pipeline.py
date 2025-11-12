@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from langchain_core.embeddings import Embeddings
 from core.registry import resolve_parser
 from utils.logger import get_logger
 from langchain_community.vectorstores import Chroma
@@ -35,14 +34,13 @@ def load_from_chroma(
 
 def save_to_chroma(
         documents: List[Document],
-        embeddings: Embeddings,
+        embeddings,
         persist_directory: str = "./chroma_db",
         collection_name: str = "pdf_collection"
 ) -> Chroma:
     os.makedirs(persist_directory, exist_ok=True)
 
     try:
-        # 1️⃣ Пытаемся открыть существующую коллекцию
         vectorstore = Chroma(
             collection_name=collection_name,
             persist_directory=persist_directory,

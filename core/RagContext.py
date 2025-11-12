@@ -21,6 +21,7 @@ class RagContext:
     def add_file(self, path: Path):
         file = self.embedd_file(path)
         self.files.append(file)
+        self.save_to_db()
 
     def edit_name(self, new_name: str):
         self.name = new_name
