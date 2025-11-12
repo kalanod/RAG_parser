@@ -1,9 +1,9 @@
 from pathlib import Path
 from typing import List
 
-from langchain_core.documents import Document
+from langchain_community.vectorstores import Chroma
 
-from core.pipeline import parse_document, load_from_chroma, save_to_chroma
+from core.pipeline import parse_document, load_from_chroma
 
 
 class RagContext:
@@ -17,6 +17,8 @@ class RagContext:
         self.files = []
         self.db_dir = db_dir
         self.embedder = embedder
+        self.db = Chroma(collection_name=self.name, persist_directory=self.db_dir)
+
 
     def add_file(self, path: Path):
         documents = parse_document(path)
@@ -34,12 +36,8 @@ class RagContext:
         return self.embedder.embed_query(query)
 
     def save_to_db(self, documents, embeddings):
-        save_to_chroma(
-            persist_directory=self.db_dir,
-            documents=documents,
-            embeddings=embeddings,
-            collection_name=self.name,
-        )
+        self.db.add_documents(documents=documents, embeddings=embeddings)
+        self.db.persist()
 
     def get_db(self):
         if self.db is None:
@@ -56,20 +54,8 @@ class RagContext:
         return question
 
     def search_in_chroma(self, query_vector, top_k: int = 5):
-        results = self.db._collection.query(
-            query_embeddings=query_vector,
-            n_results=top_k,
-            include=["documents", "metadatas", "distances"]
-        )
-        docs = []
-        for i in range(len(results["documents"][0])):
-            doc = Document(
-                page_content=results["documents"][0][i],
-                metadata=results["metadatas"][0][i]
-            )
-            distance = results["distances"][0][i]
-            docs.append((doc, distance))
-        return docs
+        results = self.db.similarity_search_by_vector(query_vector, k=top_k)
+        return results
 
     def new_question(self, question: str, context=""):
         question = self.normalize_question(question)

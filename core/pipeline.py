@@ -30,15 +30,3 @@ def load_from_chroma(
     )
     print(f"Chroma база загружена из '{persist_directory}' (коллекция: {collection_name})")
     return vectorstore
-
-
-def save_to_chroma(
-        documents: list[Document],
-        embeddings: list[list[float]],
-        persist_directory: str = "../db",
-        collection_name: str = "base"
-) -> Chroma:
-    db = Chroma(collection_name=collection_name, persist_directory=persist_directory)
-    db.add_documents(documents=documents, embeddings=embeddings)
-    db.persist()
-    return db
