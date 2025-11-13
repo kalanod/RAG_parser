@@ -17,7 +17,7 @@ class RagContext:
         self.files = []
         self.db_dir = db_dir
         self.embedder = embedder
-        self.db = Chroma(collection_name=self.name, persist_directory=self.db_dir)
+        self.db = Chroma(collection_name=self.name, persist_directory=self.db_dir, embedding_function=self.embedder)
 
 
     def add_file(self, path: Path):

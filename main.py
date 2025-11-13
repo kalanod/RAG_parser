@@ -5,12 +5,12 @@ from core.RagContext import RagContext
 
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 MAIN_EMBEDDER = HuggingFaceEmbeddings(
-    model_name='ai-sage/Giga-Embeddings-instruct',
+    model_name='distiluse-base-multilingual-cased-v2',
     model_kwargs={'device': 'cpu', "trust_remote_code": True},
     encode_kwargs={'normalize_embeddings': True},
 )
 
 if __name__ == '__main__':
     context = RagContext("main", MAIN_EMBEDDER)
-    context.add_file(Path("./res/1.xlsx"))
+    context.add_file(Path("./res/Квалификация соединений для СНГ и ДЗ.xlsx"))
     context.new_question("сколько будут платить?")
