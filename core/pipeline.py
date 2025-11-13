@@ -22,11 +22,13 @@ def parse_document(path: Path) -> List[Document]:
 
 def load_from_chroma(
         persist_directory: str = "./db",
-        collection_name: str = "pdf_collection"
+        collection_name: str = "pdf_collection",
+        embedding_function=None,
 ):
     vectorstore = Chroma(
         persist_directory=persist_directory,
-        collection_name=collection_name
+        collection_name=collection_name,
+        embedding_function=embedding_function,
     )
     print(f"Chroma база загружена из '{persist_directory}' (коллекция: {collection_name})")
     return vectorstore
