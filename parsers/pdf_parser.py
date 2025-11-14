@@ -44,7 +44,7 @@ class PDFParser(AbstractDocumentParser):
                 Document(
                     page_content=f"[ERROR] Failed to load document: {str(exc)}",
                     metadata={
-                        "source": path,
+                        "source": str(path),
                         "error": True,
                         "error_type": type(exc).__name__,
                     }
@@ -103,7 +103,7 @@ class PDFParser(AbstractDocumentParser):
                         page_content=overlap_text.strip(),
                         metadata={
                             "page": i + 1,
-                            "source": path
+                            "source": str(path)
                         }
                     )
                 )
@@ -138,7 +138,7 @@ class PDFParser(AbstractDocumentParser):
                         metadata={
                             "page": page_num,
                             "type": "image_text",
-                            "source": path
+                            "source": str(path)
                         }
                     )
                 )
@@ -165,7 +165,7 @@ class PDFParser(AbstractDocumentParser):
                                 metadata={
                                     "page": page_num,
                                     "type": "table",
-                                    "source": path
+                                    "source": str(path)
                                 }
                             )
                         )

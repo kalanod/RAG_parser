@@ -1,7 +1,10 @@
+import os
 from pathlib import Path
 from typing import List
 
+from chromadb import PersistentClient
 from langchain_community.vectorstores import Chroma
+from transformers import pipeline
 
 from core.pipeline import parse_document, load_from_chroma
 
@@ -12,16 +15,33 @@ class RagContext:
     db = None
     db_dir = None
 
-    def __init__(self, name, embedder, db_dir="./db"):
+
+    def __init__(self, name, embedder, llm, tokenizer, db_dir="./db"):
         self.name = name
         self.files = []
         self.db_dir = db_dir
         self.embedder = embedder
-        self.db = Chroma(
-            collection_name=self.name,
-            persist_directory=self.db_dir,
-            embedding_function=self.embedder,
+        os.makedirs(self.db_dir, exist_ok=True)
+        client = PersistentClient(path=self.db_dir)
+        existing = [c.name for c in client.list_collections()]
+        self.llm = pipeline(
+            "text-generation",
+            model=llm,
+            tokenizer=tokenizer,
+            max_new_tokens=300,
+            temperature=0.1,
+            repetition_penalty=1.1
         )
+        if self.name in existing:
+            self.db = client.get_collection(
+                name=self.name,
+                embedding_function=self.embedder
+            )
+        else:
+            self.db = client.create_collection(
+                name=self.name,
+                embedding_function=self.embedder
+            )
 
 
     def add_file(self, path: Path):
@@ -49,10 +69,24 @@ class RagContext:
         return self.db
 
     def rerank_context(self, docs):
-        return docs[0][0]
+        return docs[0]
 
     def generate_answer(self, question, context):
-        return context
+        prompt = f"""
+        дай ответ на чёткий и точный ответ на вопрос, используй для ответа строго выделенный контекст, пиши только ответ, кратко и по делу. Если информации нет в контексте скажи "к сожалению информация об этом не найдена"
+
+        Context:
+        {context}
+
+        Question:
+        {question}
+
+        Answer:
+            """
+        output = self.llm(prompt)[0]["generated_text"]
+        answer = output.split("Answer:")[-1].strip()
+
+        return answer
 
     def normalize_question(self, question):
         return question
@@ -64,6 +98,6 @@ class RagContext:
     def new_question(self, question: str, context=""):
         question = self.normalize_question(question)
         results = self.search_in_chroma(question, top_k=3)
-        context = context + "\n" + self.rerank_context(results)
+        context = context + "\n" + self.rerank_context(results).page_content
         answer = self.generate_answer(question, context)
         return answer
