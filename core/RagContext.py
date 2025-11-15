@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import List
 
 from chromadb import PersistentClient
-from langchain_community.vectorstores import Chroma
 from transformers import pipeline
 
 from core.pipeline import parse_document, load_from_chroma
@@ -16,7 +15,7 @@ class RagContext:
     db_dir = None
 
 
-    def __init__(self, name, embedder, llm, tokenizer, db_dir="./db"):
+    def __init__(self, name, embedder, llm, db_dir="./db"):
         self.name = name
         self.files = []
         self.db_dir = db_dir
@@ -27,7 +26,6 @@ class RagContext:
         self.llm = pipeline(
             "text-generation",
             model=llm,
-            tokenizer=tokenizer,
             max_new_tokens=300,
             temperature=0.1,
             repetition_penalty=1.1
