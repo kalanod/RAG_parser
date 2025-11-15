@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from typing import List
 
-from chromadb import PersistentClient
+from langchain_community.vectorstores import Chroma
 from transformers import pipeline
 
 from core.pipeline import parse_document, load_from_chroma
@@ -21,8 +21,6 @@ class RagContext:
         self.db_dir = db_dir
         self.embedder = embedder
         os.makedirs(self.db_dir, exist_ok=True)
-        client = PersistentClient(path=self.db_dir)
-        existing = [c.name for c in client.list_collections()]
         self.llm = pipeline(
             "text-generation",
             model=llm,
@@ -30,16 +28,11 @@ class RagContext:
             temperature=0.1,
             repetition_penalty=1.1
         )
-        if self.name in existing:
-            self.db = client.get_collection(
-                name=self.name,
-                embedding_function=self.embedder
-            )
-        else:
-            self.db = client.create_collection(
-                name=self.name,
-                embedding_function=self.embedder
-            )
+        self.db = Chroma(
+            collection_name=self.name,
+            persist_directory=self.db_dir,
+            embedding_function=self.embedder,
+        )
 
 
     def add_file(self, path: Path):
