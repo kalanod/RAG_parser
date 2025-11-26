@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List
 import pandas as pd
 from langchain_core.documents import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 import logging
 
 from parsers.abstract_document_parser import AbstractDocumentParser

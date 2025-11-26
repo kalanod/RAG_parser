@@ -3,8 +3,8 @@ from io import BytesIO
 from pathlib import Path
 from typing import List
 
-from langchain.schema import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
 
 from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE
