@@ -12,10 +12,6 @@ _REGISTRY: Dict[str, str] = {
     ".pptx": "parsers.pptx_parser.PPTXParser",
     ".xlsx": "parsers.xlsx_parser.XLSXParser",
     ".xls": "parsers.xlsx_parser.XLSXParser",
-    ".csv": "parsers.xlsx_parser.XLSXParser",
-    ".png": "parsers.ocr_parser.ImageOCRParser",
-    ".jpg": "parsers.ocr_parser.ImageOCRParser",
-    ".jpeg": "parsers.ocr_parser.ImageOCRParser",
 }
 
 

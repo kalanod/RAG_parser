@@ -1,10 +1,12 @@
+import os
 from pathlib import Path
 
 import pytesseract
+from dotenv import load_dotenv
 from langchain_huggingface import HuggingFaceEmbeddings
 from core.RagContext import RagContext
-
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+load_dotenv()
+pytesseract.pytesseract.tesseract_cmd = os.getenv('TESSERACT_PATH')
 EMBEDDER = HuggingFaceEmbeddings(
     model_name='distiluse-base-multilingual-cased-v2',
     model_kwargs={'device': 'cpu', "trust_remote_code": True},
