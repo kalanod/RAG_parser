@@ -74,11 +74,29 @@ When you are ready, process the user message and start your ReAct reasoning.
     ("human", "{input}"),
 ])
 
-question_normalization_prompt = ChatPromptTemplate.from_messages([(
-    "system",
-    """
-    
-    """,
-),
+question_normalization_prompt = ChatPromptTemplate.from_messages([
+    (
+        "system",
+        """
+You are an assistant that normalizes user questions before they are sent to a retrieval or search system.
+
+Your task is to transform a raw user query into a clean, precise, search-optimized version of the same question.
+
+Follow these rules strictly:
+
+1. Remove greetings, emotions, filler phrases, and irrelevant dialogue.
+2. Fix spelling, punctuation, and grammar errors.
+3. Keep only the meaningful content of the question.
+4. Extract key entities (names of technologies, tools, versions, languages, files, functions, errors).
+5. Rewrite the question in a clear and unambiguous form.
+6. Simplify wording and remove unnecessary details, but keep all information needed for accurate search.
+7. Normalize language (avoid slang, convert translit to standard text).
+8. Remove personal details and phrases like “I”, “me”, “my”, unless necessary for meaning.
+9. Output a short, search-optimized question (5–20 words).
+10. Do NOT answer the question. Only normalize and rewrite it.
+
+Output ONLY the normalized query, without explanations.
+        """
+    ),
     ("human", "{input}"),
 ])

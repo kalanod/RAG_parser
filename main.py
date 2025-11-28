@@ -17,9 +17,8 @@ llm_name = "Qwen2.5-1.5B-Instruct"
 if __name__ == '__main__':
     context = RagContext("test", EMBEDDER, llm_name)
     context.add_file(Path("./res/Программа визита ГПН-Шельф в ТМК НТЦ.docx"))
-    print(context.bd)
     # print("во сколько будет выступать Нургалеев А.Р?\n" + context.new_question("во сколько будет Кофе-брейк?"))
     # print()
-    # print("а кто контактное лицо на мероприятии?\n" + context.new_question("а кто контактное лицо на мероприятии?"))
-    context.agent_question("во сколько будет Кофе-брейк?")
+    print("а кто контактное лицо на мероприятии?\n" + context.new_question("а кто контактное лицо на мероприятии?"))
+    #context.agent_question("во сколько будет Кофе-брейк?")
     context.test()

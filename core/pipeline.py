@@ -1,29 +1,24 @@
-import os
 from pathlib import Path
-from core.registry import resolve_parser
-from utils.logger import get_logger
+from typing import List
+
 from langchain_community.vectorstores import Chroma
 from langchain_core.documents import Document
-from typing import List
+
+from core.services.document_ingestion import DocumentIngestionService
+from utils.logger import get_logger
 
 LOGGER = get_logger(__name__)
 
 
 def parse_document(path: Path) -> List[Document]:
-    path = Path(path)
-    if not path.exists():
-        raise FileNotFoundError(path)
-    LOGGER.info("Parsing document: %s", path)
-    parser = resolve_parser(path)
-    segments = parser.parse(path)
-    LOGGER.debug("Produced %s raw segments", len(segments))
-    return segments
+    ingestion_service = DocumentIngestionService()
+    return ingestion_service.parse_and_clean(path)
 
 
 def load_from_chroma(
-        persist_directory: str = "./db",
-        collection_name: str = "pdf_collection",
-        embedding_function=None,
+    persist_directory: str = "./db",
+    collection_name: str = "pdf_collection",
+    embedding_function=None,
 ):
     vectorstore = Chroma(
         persist_directory=persist_directory,
